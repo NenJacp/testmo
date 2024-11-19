@@ -1,0 +1,392 @@
+<!doctype html>
+<html class="no-js" lang="en">
+
+    <head>
+      <!-- The above 3 meta tags must come first in the head; any other head content must come after these tags -->
+		<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700;1,900&family=Poppins:wght@100;200;300;400;500;600;700;800;900&family=Lato:wght@100;300;400;700;900&family=Anton&family=Playwrite+NZ:wght@100..400&display=swap" rel="stylesheet">
+		<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Kalnia+Glaze:wght@100..700&family=Oswald:wght@200..700&family=Sansita:ital,wght@0,400;0,700;0,800;0,900;1,400;1,700;1,800;1,900&display=swap" rel="stylesheet">
+		
+        <!-- TITLE OF SITE -->
+        <title>LibreMercado</title>
+
+        <!-- for title img -->
+		<link rel="shortcut icon" type="image/icon" href="assets/images/logo/LOGO APP.png"/>
+       
+        <!--font-awesome.min.css-->
+        <link rel="stylesheet" href="assets/css/font-awesome.min.css">
+		
+		<!--linear icon css-->
+		<link rel="stylesheet" href="https://cdn.linearicons.com/free/1.0.0/icon-font.min.css">
+
+        <!--bootstrap.min.css-->
+        <link rel="stylesheet" href="assets/css/bootstrap.min.css">
+        
+        <!--style.css-->
+        <link rel="stylesheet" href="assets/css/style.css">
+        
+        <!--responsive.css-->
+        <link rel="stylesheet" href="assets/css/responsive.css">
+
+    </head>
+	
+	<body>
+		
+		<!--menu start-->
+		<section id="menu">
+			<div class="container">
+				<div class="menubar">
+					<nav class="navbar navbar-default">
+						<!-- Brand and toggle get grouped for better mobile display -->
+						<div class="navbar-header">
+							<a class="navbar-brand" href="index.html">
+								<h1 class="Sitio">Libre<span style="color: #23E1DB;">Mercado</span></h1>
+							</a>
+						</div><!--/.navbar-header -->
+						<!-- Collect the nav links, forms, and other content for toggling -->
+						<div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+							<ul class="nav navbar-nav navbar-right">
+								<li class="active"><a href="index.html">Home</a></li>
+								<li><a href="Perfil.html">
+										<span class="lnr lnr-user"></span>
+								</a></li>
+								<li>
+									<a href="Carrito.html" class="notific">
+										<span class="lnr lnr-cart"></span>
+										<div class="contador">0</div>
+									</a>
+								</li>
+								<li class="search">
+									<div class="search-container">
+										<input type="text" id="search-input" placeholder="Buscar productos...">
+									</div>
+								</li>
+							</ul><!-- / ul -->
+						</div><!-- /.navbar-collapse -->
+					</nav><!--/nav -->
+				</div><!--/.menubar -->
+			</div><!-- /.container -->
+
+		</section><!--/#menu-->
+		<!--menu end-->
+		<main>
+			<div class="promo-banner">
+				<p>Accede a ofertas exclusivas</p>
+				<p class="discount">Hasta 60% de descuento + 10% cupón bancario</p>
+			</div>
+			 <!-- Modal para detalles del producto -->
+<div id="product-modal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <div id="product-detail-modal">
+            <!-- Los detalles del producto se llenarán aquí dinámicamente -->
+        </div>
+    </div>
+</div>
+		   
+			<!-- ///////////////////////////////////////////////////////////////////////////////////////////////////-->
+			<script>
+				document.addEventListener('DOMContentLoaded', () => {
+    const productContainer = document.getElementById('product-container');
+    const searchInput = document.getElementById('search-input');
+    const productDetailModal = document.getElementById('product-detail-modal');
+    const modal = document.getElementById('product-modal');
+    const closeModal = document.querySelector('.close');
+    const numProductsToShow = 42; // Número de productos aleatorios a mostrar
+    let products = [];
+
+    const categories = ['smartphone', 'laptop', 'headphones', 'camera', 'watch'];
+
+    function fetchProducts(query) {
+        const apiUrl = `https://api.mercadolibre.com/sites/MLA/search?q=${query}`;
+        return fetch(apiUrl)
+            .then(response => response.json())
+            .then(data => data.results);
+    }
+
+    function getRandomProducts(products, count) {
+        const shuffled = products.sort(() => 0.5 - Math.random());
+        return shuffled.slice(0, count);
+    }
+
+    Promise.all(categories.map(fetchProducts))
+        .then(results => {
+            products = results.flat();
+            displayProducts(getRandomProducts(products, numProductsToShow));
+        })
+        .catch(error => {
+            console.error('Error fetching products:', error);
+        });
+
+    function displayProducts(products) {
+        productContainer.innerHTML = '';
+
+        products.forEach(product => {
+            const productCard = document.createElement('div');
+            productCard.classList.add('product-card');
+            productCard.dataset.id = product.id;
+
+            productCard.innerHTML = `
+                <img src="${product.thumbnail}" alt="${product.title}">
+                <div class="discount">-84%</div>
+                <h2>${product.title}</h2>
+                <p class="price">MX$${product.price.toFixed(2)}</p>
+                <p class="old-price">MX$${(product.price / 0.16).toFixed(2)}</p>
+                <p class="sales">🔥 5.7K+ ventas</p>
+                <div class="rating">
+                    <span>4.3</span>
+                </div>
+            `;
+
+            productCard.addEventListener('click', () => {
+                showProductDetailModal(product);
+            });
+
+            productContainer.appendChild(productCard);
+        });
+    }
+
+	function showProductDetailModal(product) {
+    productDetailModal.innerHTML = `
+        <h2>${product.title}</h2>
+        <img src="${product.thumbnail}" alt="${product.title}" class="modal-image">
+        <p class="price">MX$${product.price.toFixed(2)}</p>
+        <p>${product.title}</p>
+        ${product.description ? `<p>${product.description}</p>` : ''}
+        <button id="addToCartBtn" class="btn btn-primary add-to-cart-btn " style="width: 140px;">Agregar al carrito</button>
+    `;
+    modal.style.display = 'block'; // Muestra el modal
+
+    document.getElementById('addToCartBtn').addEventListener('click', () => {
+        agregarProducto(product.title, product.price); // Usamos la función existente de custom.js
+        modal.style.display = 'none'; // Cierra el modal después de agregar al carrito
+    });
+}
+
+closeModal.addEventListener('click', () => {
+    modal.style.display = 'none'; // Cierra el modal
+});
+
+window.addEventListener('click', (event) => {
+    if (event.target === modal) {
+        modal.style.display = 'none'; // Cierra el modal si se hace clic fuera de él
+    }
+});
+
+    searchInput.addEventListener('input', () => {
+        const searchTerm = searchInput.value.toLowerCase();
+        const filteredProducts = products.filter(product =>
+            product.title.toLowerCase().includes(searchTerm)
+        );
+        displayProducts(getRandomProducts(filteredProducts, numProductsToShow));
+    });
+});
+
+			</script>
+			<div id="product-container" class="product-container"></div>
+			<div id="product-detail" class="product-detail"></div>
+		</main>
+		<!--rt -->
+		<!--about-us end -->
+
+		<!--statistics start-->
+		<section  class="statistics">
+			<div class="container">
+				<div class="statistics-counter "> 
+					<div class="col-md-3 col-sm-6">
+						<div class="single-ststistics-box">
+							<div class="statistics-img">
+								<img src="assets/images/counter/counter1.png" alt="counter-icon" />
+							</div><!--/.statistics-img-->
+							<div class="statistics-content">
+								<div class="counter">1326</div>
+								<h3>Dias trabajados</h3>
+							</div><!--/.statistics-content-->
+						</div><!--/.single-ststistics-box-->
+					</div><!--/.col-->
+					<div class="col-md-3 col-sm-6">
+						<div class="single-ststistics-box">
+							<div class="statistics-img">
+								<img src="assets/images/counter/counter3.png" alt="counter-icon" />
+							</div><!--/.statistics-img-->
+							<div class="statistics-content">
+								<div class="counter">326</div>
+								<h3>Paises presentes</h3>
+							</div><!--/.statistics-content-->
+						</div><!--/.single-ststistics-box-->
+					</div><!--/.col-->
+					<div class="col-md-3 col-sm-6">
+						<div class="single-ststistics-box">
+							<div class="statistics-img">
+								<img src="assets/images/counter/counter4.png" alt="counter-icon" />
+							</div><!--/.statistics-img-->
+							<div class="statistics-content">
+								<div class="counter">1526</div>
+								<h3>Comentarios positivos</h3>
+							</div><!--/.statistics-content-->
+						</div><!--/.single-ststistics-box-->
+					</div><!--/.col-->
+					<div class="col-md-3 col-sm-6">
+						<div class="single-ststistics-box">
+							<div class="statistics-img">
+								<img src="assets/images/counter/counter2.png" alt="counter-icon" />
+							</div><!--/.statistics-img-->
+							<div class="statistics-content">
+								<div class="counter">856</div>
+								<h3>Clientes satisfechos</h3>
+							</div><!--/.statistics-content-->
+						</div><!--/.single-ststistics-box-->
+					</div><!--/.col-->
+				</div><!--/.statistics-counter-->	
+			</div><!--/.container-->
+
+		</section><!--/.statistics-->
+		<!--statistics end-->
+
+		<!--Carrito-->
+		<div class="Mens" id="mensajeContainer"> 
+		<div class="cart-message" id="cartMessage">¡Producto agregado al carrito!</div>
+		</div>
+		<!--team start -->
+		
+
+	
+
+
+		
+<!--/.team-->
+		<!--team end-->
+	
+   
+	<!-- ///////////////////////////////////////////////////////////////////////////////////////////////////-->
+		<!--hm-footer start-->
+		<section class="hm-footer">
+			<div class="container">
+				<div class="hm-footer-details">
+					<div class="row">
+						<div class="col-md-4 col-sm-6 col-xs-12">
+							<div class="hm-footer-widget">
+								<div class="hm-foot-title ">
+									<div class="logo">
+										<a href="index.html">
+											<h1 class="Sitio">Libre<span style="color: #59C7FA;">Mercado</span></h1>
+										</a>
+									</div><!-- /.logo-->
+								</div><!--/.hm-foot-title-->
+								<div class="hm-foot-para">
+									<p>
+										Conectando ofertas, creando oportunidades.
+									</p>
+								</div><!--/.hm-foot-para-->
+								<div class="hm-foot-icon">
+									<ul>
+										<li><a href="https://www.facebook.com/"><i class="fa fa-facebook" aria-hidden="true"></i></a></li><!--/li-->
+										<li><a href="#"><i class="fa fa-google-plus" aria-hidden="true"></i></a></li><!--/li-->
+										<li><a href="https://mx.linkedin.com/"><i class="fa fa-linkedin" aria-hidden="true"></i></a></li><!--/li-->
+										<li><a href="https://x.com/"><i class="fa fa-twitter" aria-hidden="true"></i></a></li><!--/li-->
+									</ul><!--/ul-->
+								</div><!--/.hm-foot-icon-->
+							</div><!--/.hm-footer-widget-->
+						</div><!--/.col-->
+						<div class=" col-md-2 col-sm-6 col-xs-12">
+							<div class="hm-footer-widget">
+								<div class="hm-foot-title">
+									<h4>Links de paginas</h4>
+								</div><!--/.hm-foot-title-->
+								<div class="footer-menu ">	  
+									<ul class="">
+										<li><a href="index.html" >Principal</a></li>
+										<li><a href="Perfil.html">Pefil</a></li>
+										<li><a href="Pagos.html">Carrito</a></li>
+										<li><a href="Pagos.html">Metodos de pago</a></li> 
+									</ul>
+								</div><!-- /.footer-menu-->
+							</div><!--/.hm-footer-widget-->
+						</div><!--/.col-->
+
+						<div class=" col-md-4 col-sm-6  col-xs-12">
+							<div class="hm-footer-widget">
+								<div class="hm-foot-title">
+									<h4> Contactanos</h4>
+								</div><!--/.hm-foot-title-->
+								<div class="hm-foot-para">
+									<p class="para-news">+52 9995013703</p><br>
+									<p class="para-news">LibreAyuda@gmail.com</p><br>
+									<p class="para-news">C. 111 315, Santa Rosa, 97279 Mérida, Yuc., México</p>
+								</div><!--/.hm-foot-para-->
+							</div><!--/.hm-footer-widget-->
+						</div><!--/.col-->
+					</div><!--/.row-->
+				</div><!--/.hm-footer-details-->
+			</div><!--/.container-->
+
+		</section><!--/.hm-footer-details-->
+		<!--hm-footer end-->
+		
+		<!-- footer-copyright start -->
+		<footer class="footer-copyright">
+			<div class="container">
+				<div class="row">
+					<div class="col-sm-7">
+						<div class="foot-copyright pull-left">
+							<p>
+								&copy; All Rights Reserved. Designed and Developed by
+							 	<a href="https://www.themesine.com">ThemeSINE</a>
+							</p>
+						</div><!--/.foot-copyright-->
+					</div><!--/.col-->
+					<div class="col-sm-5">
+						<div class="foot-menu pull-right
+						">	  
+							<ul>
+								<li ><a href="#">legal</a></li>
+								<li ><a href="#">sitemap</a></li>
+								<li ><a href="#">privacy policy</a></li>
+							</ul>
+						</div><!-- /.foot-menu-->
+					</div><!--/.col-->
+				</div><!--/.row-->
+				<div id="scroll-Top">
+					<i class="fa fa-angle-double-up return-to-top" id="scroll-top" data-toggle="tooltip" data-placement="top" title="" data-original-title="Back to Top" aria-hidden="true"></i>
+				</div><!--/.scroll-Top-->
+			</div><!-- /.container-->
+
+		</footer><!-- /.footer-copyright-->
+		<!-- footer-copyright end -->
+
+
+
+		<script src="assets/js/Carrito.js"></script>
+		<!-- jaquery link -->
+		<script src="assets/js/jquery.js"></script>
+        <!-- Include all compiled plugins (below), or include individual files as needed -->
+        
+        <!--modernizr.min.js-->
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.8.3/modernizr.min.js"></script>
+		
+		
+		<!--bootstrap.min.js-->
+        <script type="text/javascript" src="assets/js/bootstrap.min.js"></script>
+		
+		<!-- for manu -->
+		<script src="assets/js/jquery.hc-sticky.min.js" type="text/javascript"></script>
+
+		
+		<!-- vedio player js -->
+		<script src="assets/js/jquery.magnific-popup.min.js"></script>
+
+
+		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery-easing/1.4.1/jquery.easing.min.js"></script>
+
+        <!--owl.carousel.js-->
+        <script type="text/javascript" src="assets/js/owl.carousel.min.js"></script>
+		
+        <!--Custom JS-->
+        <script type="text/javascript" src="assets/js/custom.js"></script>
+		<script src="assets/js/MetodoPago.js"></script>
+		
+    </body>
+	
+</html>
+
+
+

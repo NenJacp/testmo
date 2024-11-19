@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inicio de Sesión</title>
+    
+     <!-- The above 3 meta tags must come first in the head; any other head content must come after these tags -->
+		<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700;1,900&family=Poppins:wght@100;200;300;400;500;600;700;800;900&family=Lato:wght@100;300;400;700;900&family=Anton&family=Playwrite+NZ:wght@100..400&display=swap" rel="stylesheet">
+        
+    <link rel="shortcut icon" type="image/icon" href="assets/images/logo/LOGO APP.png"/>
+    <link rel="stylesheet" href="assets/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://cdn.linearicons.com/free/1.0.0/icon-font.min.css">
+    <link rel="stylesheet" href="assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="assets/css/Sesion.css">
+    <link rel="stylesheet" href="assets/css/responsive.css">
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <div class="Centrado">
+        <form class="form_main" id="loginForm">
+            <p class="heading">Inicio de sesión</p>
+            <div class="inputContainer">
+                <svg viewBox="0 0 16 16" fill="#2e2e2e" height="16" width="16" xmlns="http://www.w3.org/2000/svg" class="inputIcon">
+                    <path d="M13.106 7.222c0-2.967-2.249-5.032-5.482-5.032-3.35 0-5.646 2.318-5.646 5.702 0 3.493 2.235 5.708 5.762 5.708.862 0 1.689-.123 2.304-.335v-.862c-.43.199-1.354.328-2.29.328-2.926 0-4.813-1.88-4.813-4.798 0-2.844 1.921-4.881 4.594-4.881 2.735 0 4.608 1.688 4.608 4.156 0 1.682-.554 2.769-1.416 2.769-.492 0-.772-.28-.772-.76V5.206H8.923v.834h-.11c-.266-.595-.881-.964-1.6-.964-1.4 0-2.378 1.162-2.378 2.823 0 1.737.957 2.906 2.379 2.906.8 0 1.415-.39 1.709-1.087h.11c.081.67.703 1.148 1.503 1.148 1.572 0 2.57-1.415 2.57-3.643zm-7.177.704c0-1.197.54-1.907 1.456-1.907.93 0 1.524.738 1.524 1.907S8.308 9.84 7.371 9.84c-.895 0-1.442-.725-1.442-1.914z"></path>
+                </svg>
+                <input placeholder="Correo" id="email" name="email" class="inputField" type="text">
+            </div>
+            <div class="inputContainer">
+                <svg viewBox="0 0 16 16" fill="#2e2e2e" height="16" width="16" xmlns="http://www.w3.org/2000/svg" class="inputIcon">
+                    <path d="M8 1a2 2 0 0 1 2 2v4H6V3a2 2 0 0 1 2-2zm3 6V3a3 3 0 0 0-6 0v4a2 2 0 0 0-2 2v5a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"></path>
+                </svg>
+                <input placeholder="Contraseña" id="password" name="password" class="inputField" type="password">
+            </div>
+            <button id="button" type="submit">Iniciar</button>
+            <div class="signupContainer">
+                <p>No tienes una cuenta? <a href="Registro.html">Regístrate gratis!</a></p>
+                <a href="#">Iniciar Sesión</a>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            $("#loginForm").on("submit", function(event) {
+                event.preventDefault(); // Evitar el envío del formulario de forma tradicional
+    
+                const email = $("#email").val().trim();
+                const password = $("#password").val().trim();
+    
+                if (!email || !password) {
+                    alert("Por favor, llene todos los campos.");
+                    return;
+                }
+    
+                $.ajax({
+                    url: "/login",
+                    method: "POST",
+                    contentType: "application/json",
+                    data: JSON.stringify({ email, password }),
+                    success: function(response) {
+                        if (response.success) {
+                            // Guardar la ID del usuario en localStorage
+                            localStorage.setItem('idUsuario', response.idUsuario);
+                            
+                            // Guardar los productos del carrito en localStorage
+                            localStorage.setItem('carrito', JSON.stringify(response.carrito));
+                            
+                            // Redirigir al index.html en caso de éxito
+                            window.location.href = "index.html";
+                        } else {
+                            alert(response.message); // Mostrar mensaje de error si algo sale mal
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error("Error en la solicitud AJAX:", error);
+                        alert("Ocurrió un error al enviar el formulario.");
+                    }
+                });
+            });
+        });
+    </script>
+    
+</body>
+</html>

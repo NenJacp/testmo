@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+     <!-- The above 3 meta tags must come first in the head; any other head content must come after these tags -->
+		<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700;1,900&family=Poppins:wght@100;200;300;400;500;600;700;800;900&family=Lato:wght@100;300;400;700;900&family=Anton&family=Playwrite+NZ:wght@100..400&display=swap" rel="stylesheet">
+
+    <!-- Título de la página -->
+    <title>Crea tu cuenta</title>
+
+    <!-- Ícono del título -->
+    <link rel="shortcut icon" type="image/icon" href="assets/images/logo/LOGO APP.png">
+
+    <!-- Estilos CSS externos -->
+    <link rel="stylesheet" href="assets/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://cdn.linearicons.com/free/1.0.0/icon-font.min.css">
+    <link rel="stylesheet" href="assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="assets/css/Registro.css">
+    <link rel="stylesheet" href="assets/css/responsive.css">
+</head>
+<body>
+    <div class="CentrarRegistro">
+        <form class="form" action="/submit-form" method="POST" onsubmit="return validateForm()">
+            <p class="title">Creacion de una cuenta</p>
+            <p class="message">Crea una nueva cuenta para poder navegar y hacer compras</p>
+            <div class="flex">
+                <label>
+                    <input id="nombre" class="input" type="text" name="nombre" placeholder="" required>
+                    <span>Nombre</span>
+                </label>
+                <label>
+                    <input id="apellido" class="input" type="text" name="apellido" placeholder="" required>
+                    <span>Apellido</span>
+                </label>
+            </div>
+            <label>
+                <input id="email" class="input" type="text" name="email" placeholder="" required>
+                <span>Email</span>
+            </label>
+            <label>
+                <input id="direccion" class="input" type="text" name="direccion" placeholder="" required>
+                <span>Direccion</span>
+            </label>
+            <label>
+                <input id="telefono" class="input" type="text" name="telefono" placeholder="" required>
+                <span>Telefono</span>
+            </label>
+            <label>
+                <input id="password" class="input" type="password" name="password" placeholder="" required>
+                <span>Contraseña</span>
+            </label>
+            <label>
+                <input id="confirmPassword" class="input" type="password" placeholder="" required>
+                <span>Confirmar Contraseña</span>
+            </label>
+            <button type="submit" class="submit">Crear</button>
+            <p class="signin">¿Ya tienes una cuenta? <a href="Inicio_Sesion.html">Inicia sesión</a></p>
+        </form>
+    </div>
+    <script src="assets/js/custom.js"></script>
+</body>
+</html>
