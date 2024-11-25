@@ -284,7 +284,7 @@ function validateForm() {
     })
     .catch(error => {
         console.error('Error:', error);
-        alert('Registrado Correctamente.');
+        alert('Error al registrar. Inténtalo de nuevo.');
     });
 
     return false; // Evitar el envío del formulario de forma tradicional

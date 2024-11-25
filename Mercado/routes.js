@@ -1,24 +1,9 @@
 const express = require('express');
-const bodyParser = require('body-parser');
-const mysql = require('mysql');
-const path = require('path');
 const nodemailer = require('nodemailer'); // para que se envien al correo
-const app = express();
+const conexion = require('./db'); // Importar la conexión a la base de datos
+const router = express.Router();
 
-const conexion = mysql.createConnection({
-    host: "localhost",
-    database: "mercado",
-    user: "root",
-    password: ""
-});
-
-conexion.connect(function(err) {
-    if (err) {
-        throw err;
-    }
-    console.log("Conexión exitosa");
-});
-
+// Configuración de nodemailer
 const transporter = nodemailer.createTransport({
     host: 'smtp.office365.com', // Servidor SMTP de Hotmail/Outlook
     port: 587, // Puerto para TLS
@@ -29,48 +14,30 @@ const transporter = nodemailer.createTransport({
     }
 });
 
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
-
-// Servir archivos estáticos desde el directorio 'zombiz-master'
-app.use(express.static(path.join(__dirname, 'zombiz-master')));
-
 // Ruta para servir Registro.html como la página de inicio
-app.get('/', (req, res) => {
+router.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'zombiz-master', 'Registro.html'));
 });
 
-app.post('/submit-form', (req, res) => {
+// Ruta para manejar el registro de usuarios
+router.post('/submit-form', (req, res) => {
     const { nombre, apellido, email, direccion, telefono, password } = req.body;
 
-    // Verificar si el correo ya existe
-    const checkEmailSql = 'SELECT * FROM Usuarios WHERE email = ?';
-    conexion.query(checkEmailSql, [email], (err, results) => {
+    const sql = `INSERT INTO Usuarios (nombre, apellido, email, direccion, telefono, password) 
+                 VALUES (?, ?, ?, ?, ?, ?)`;
+
+    conexion.query(sql, [nombre, apellido, email, direccion, telefono, password], (err, result) => {
         if (err) {
-            console.error("Error al verificar el correo:", err);
-            return res.status(500).json({ success: false, message: 'Error al verificar el correo.' });
+            console.error("Error al guardar los datos en la base de datos:", err);
+            return res.status(500).json({ success: false, message: 'Error al guardar los datos en la base de datos.' });
         }
-
-        if (results.length > 0) {
-            return res.status(400).json({ success: false, message: 'El correo ya está en uso.' });
-        }
-
-        // Si el correo no existe, proceder a insertar el nuevo usuario
-        const sql = `INSERT INTO Usuarios (nombre, apellido, email, direccion, telefono, password) 
-                     VALUES (?, ?, ?, ?, ?, ?)`;
-
-        conexion.query(sql, [nombre, apellido, email, direccion, telefono, password], (err, result) => {
-            if (err) {
-                console.error("Error al guardar los datos en la base de datos:", err);
-                return res.status(500).json({ success: false, message: 'Error al guardar los datos en la base de datos.' });
-            }
-            console.log("Datos insertados correctamente en la base de datos");
-            res.status(200).json({ success: true, message: 'Datos guardados correctamente.' });
-        });
+        console.log("Datos insertados correctamente en la base de datos");
+        res.status(200).json({ success: true, message: 'Datos guardados correctamente.' });
     });
 });
 
-app.post('/login', (req, res) => {
+// Ruta para manejar el login
+router.post('/login', (req, res) => {
     const { email, password } = req.body;
 
     const sqlAuth = 'SELECT id FROM usuarios WHERE email = ? AND password = ?';
@@ -125,7 +92,8 @@ app.post('/login', (req, res) => {
     });
 });
 
-app.post('/confirmar-compra', (req, res) => {
+// Ruta para confirmar la compra
+router.post('/confirmar-compra', (req, res) => {
     const productos = req.body.productos;
     const idComprador = req.body.id_comprador;
 
@@ -144,11 +112,8 @@ app.post('/confirmar-compra', (req, res) => {
     });
 });
 
-// conexion.js
-
-// conexion.js
-
-app.post('/guardar_carrito', (req, res) => {
+// Ruta para guardar el carrito
+router.post('/guardar_carrito', (req, res) => {
     const productos = req.body.productos;
     const idComprador = req.body.id_comprador;
 
@@ -168,8 +133,9 @@ app.post('/guardar_carrito', (req, res) => {
         res.status(200).json({ success: true, message: 'Carrito guardado exitosamente.' });
     });
 });
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////
-app.get('/api/usuario/:id', (req, res) => {
+
+// Ruta para obtener datos del usuario
+router.get('/api/usuario/:id', (req, res) => {
     const userId = req.params.id;
 
     const sql = 'SELECT nombre, apellido, email, direccion, telefono FROM usuarios WHERE id = ?';
@@ -186,11 +152,10 @@ app.get('/api/usuario/:id', (req, res) => {
         const usuario = results[0];
         res.status(200).json({ success: true, usuario: usuario });
     });
-})
+});
 
-// ... existing code ...
-
-app.post('/actualizar-usuario', (req, res) => {
+// Ruta para actualizar datos del usuario
+router.post('/actualizar-usuario', (req, res) => {
     const { id, nombre, apellido, email, telefono, direccion } = req.body;
 
     const sql = `UPDATE usuarios SET nombre = ?, apellido = ?, email = ?, telefono = ?, direccion = ? WHERE id = ?`;
@@ -205,7 +170,8 @@ app.post('/actualizar-usuario', (req, res) => {
     });
 });
 
-app.post('/enviar-correo', (req, res) => {
+// Ruta para enviar correo
+router.post('/enviar-correo', (req, res) => {
     const { idUsuario, carrito } = req.body;
 
     // Obtener datos del usuario
@@ -242,73 +208,8 @@ app.post('/enviar-correo', (req, res) => {
     });
 });
 
-
-//buscar tarjeta y mostrar datos de la misma
-
-app.get('/api/tarjeta/:idUsuario', (req, res) => {
-    const idUsuario = req.params.idUsuario;
-
-    const sql = 'SELECT Numeros, Fecha, CVV, NombreBanco FROM tarjeta WHERE IDUSuario = ?';
-    conexion.query(sql, [idUsuario], (err, results) => {
-        if (err) {
-            console.error("Error al obtener los datos de la tarjeta:", err);
-            return res.status(500).json({ success: false, message: 'Error al obtener los datos de la tarjeta.' });
-        }
-
-        if (results.length === 0) {
-            return res.status(404).json({ success: false, message: 'Tarjeta no encontrada.' });
-        }
-
-        const tarjeta = results[0];
-        res.status(200).json({ success: true, tarjeta: tarjeta });
-    });
-});
-
-//guardar o modificar tarjeta
-
-
-
-
-app.post('/guardar-tarjeta', (req, res) => {
-    const { numeros, fecha, cvv, nombreBanco, idUsuario } = req.body;
-
-    const checkSql = 'SELECT * FROM tarjeta WHERE IDUSuario = ?';
-    conexion.query(checkSql, [idUsuario], (err, results) => {
-        if (err) {
-            console.error("Error al verificar la tarjeta:", err);
-            return res.status(500).json({ success: false, message: 'Error al verificar la tarjeta.' });
-        }
-
-        if (results.length > 0) {
-            // Si la tarjeta ya existe, actualizarla
-            const updateSql = 'UPDATE tarjeta SET Numeros = ?, Fecha = ?, CVV = ?, NombreBanco = ? WHERE IDUSuario = ?';
-            conexion.query(updateSql, [numeros, fecha, cvv, nombreBanco, idUsuario], (err, result) => {
-                if (err) {
-                    console.error("Error al actualizar la tarjeta:", err);
-                    return res.status(500).json({ success: false, message: 'Error al actualizar la tarjeta.' });
-                }
-                console.log("Tarjeta actualizada correctamente");
-                res.status(200).json({ success: true, message: 'Tarjeta actualizada exitosamente.' });
-            });
-        } else {
-            // Si la tarjeta no existe, insertarla
-            const insertSql = 'INSERT INTO tarjeta (Numeros, Fecha, CVV, NombreBanco, IDUSuario) VALUES (?, ?, ?, ?, ?)';
-            conexion.query(insertSql, [numeros, fecha, cvv, nombreBanco, idUsuario], (err, result) => {
-                if (err) {
-                    console.error("Error al guardar la tarjeta:", err);
-                    return res.status(500).json({ success: false, message: 'Error al guardar la tarjeta.' });
-                }
-                console.log("Tarjeta guardada correctamente");
-                res.status(200).json({ success: true, message: 'Tarjeta guardada exitosamente.' });
-            });
-        }
-    });
-});
-
-
-
-
-app.get('/api/tarjeta/:idUsuario', (req, res) => {
+// Ruta para obtener datos de la tarjeta
+router.get('/api/tarjeta/:idUsuario', (req, res) => {
     const idUsuario = req.params.idUsuario;
 
     const sql = 'SELECT Numeros, Fecha, CVV, NombreBanco FROM tarjeta WHERE IDUsuario = ?';
@@ -327,9 +228,41 @@ app.get('/api/tarjeta/:idUsuario', (req, res) => {
     });
 });
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`Servidor escuchando en el puerto ${PORT}`);
+// Ruta para guardar o modificar tarjeta
+router.post('/guardar-tarjeta', (req, res) => {
+    const { numeros, fecha, cvv, nombreBanco, idUsuario } = req.body;
+
+    const checkSql = 'SELECT * FROM tarjeta WHERE IDUsuario = ?';
+    conexion.query(checkSql, [idUsuario], (err, results) => {
+        if (err) {
+            console.error("Error al verificar la tarjeta:", err);
+            return res.status(500).json({ success: false, message: 'Error al verificar la tarjeta.' });
+        }
+
+        if (results.length > 0) {
+            // Si la tarjeta ya existe, actualizarla
+            const updateSql = 'UPDATE tarjeta SET Numeros = ?, Fecha = ?, CVV = ?, NombreBanco = ? WHERE IDUsuario = ?';
+            conexion.query(updateSql, [numeros, fecha, cvv, nombreBanco, idUsuario], (err, result) => {
+                if (err) {
+                    console.error("Error al actualizar la tarjeta:", err);
+                    return res.status(500).json({ success: false, message: 'Error al actualizar la tarjeta.' });
+                }
+                console.log("Tarjeta actualizada correctamente");
+                res.status(200).json({ success: true, message: 'Tarjeta actualizada exitosamente.' });
+            });
+        } else {
+            // Si la tarjeta no existe, insertarla
+            const insertSql = 'INSERT INTO tarjeta (Numeros, Fecha, CVV, NombreBanco, IDUsuario) VALUES (?, ?, ?, ?, ?)';
+            conexion.query(insertSql, [numeros, fecha, cvv, nombreBanco, idUsuario], (err, result) => {
+                if (err) {
+                    console.error("Error al guardar la tarjeta:", err);
+                    return res.status(500).json({ success: false, message: 'Error al guardar la tarjeta.' });
+                }
+                console.log("Tarjeta guardada correctamente");
+                res.status(200).json({ success: true, message: 'Tarjeta guardada exitosamente.' });
+            });
+        }
+    });
 });
+
+module.exports = router;
